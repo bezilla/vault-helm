@@ -1,0 +1,62 @@
+global:
+  enabled: true
+#  imagePullSecrets:
+#    - name: harbor-auth
+server:
+  ingress:
+    enabled: true
+    labels: {}
+    annotations: |
+      alb.ingress.kubernetes.io/actions.ssl-redirect: "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}"
+      alb.ingress.kubernetes.io/backend-protocol: "HTTP"
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:728360891420:certificate/e6a6e24d-28fa-4c2a-8f68-0e067f36565f"
+      alb.ingress.kubernetes.io/healthcheck-path: "/"
+      alb.ingress.kubernetes.io/ip-address-type: "ipv4"
+      alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\":443}]"
+      alb.ingress.kubernetes.io/scheme: "internet-facing"
+      alb.ingress.kubernetes.io/target-type: "ip"
+      external-dns.alpha.kubernetes.io/hostname: vault.dev.plutostaging.tv
+      kubernetes.io/ingress.class: "alb"
+    hosts:
+      - host: vault.dev.plutostaging.tv
+        paths:
+          - /*
+  extraEnvironmentVars:
+    VAULT_SEAL_TYPE: awskms
+    VAULT_AWSKMS_SEAL_KEY_ID: "957848b5-9e08-44b4-b0d5-3a4efbafa62f"
+  ha:
+    config: |
+      ui = true
+      cluster_addr = "https://POD_IP:8201"
+
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "consul" {
+        path = "vault"
+        address = "HOST_IP:8500"
+        token = "31fa7c1e-e057-b745-56f7-30ca73fdcd13"
+      }
+ui:
+  enabled: true
+HttpPort: 8200
+uiIngress:
+  enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/actions.ssl-redirect: "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}"
+    alb.ingress.kubernetes.io/backend-protocol: "HTTP"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:728360891420:certificate/e6a6e24d-28fa-4c2a-8f68-0e067f36565f"
+    alb.ingress.kubernetes.io/healthcheck-path: "/"
+    alb.ingress.kubernetes.io/ip-address-type: "ipv4"
+    alb.ingress.kubernetes.io/listen-ports: "[{\"HTTP\": 80}, {\"HTTPS\":443}]"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/target-type: "ip"
+    external-dns.alpha.kubernetes.io/hostname: vaultui.dev.plutostaging.tv
+    kubernetes.io/ingress.class: "alb"
+  labels: {}
+  hosts:
+    - vaultui.dev.plutostaging.tv
+  path: /*
+  tls: []
